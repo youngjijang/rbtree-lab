@@ -113,17 +113,17 @@ void test_minmax(key_t *arr, const size_t n) {
   assert(q != NULL);
   assert(q->key == arr[n - 1]);
 
-  // rbtree_erase(t, p);
-  // p = rbtree_min(t);
-  // assert(p != NULL);
-  // assert(p->key == arr[1]);
+  rbtree_erase(t, p);
+  p = rbtree_min(t);
+  assert(p != NULL);
+  assert(p->key == arr[1]);
 
-  // if (n >= 2) {
-  //   rbtree_erase(t, q);
-  //   q = rbtree_max(t);
-  //   assert(q != NULL);
-  //   assert(q->key == arr[n - 2]);
-  // }
+  if (n >= 2) {
+    rbtree_erase(t, q);
+    q = rbtree_max(t);
+    assert(q != NULL);
+    assert(q->key == arr[n - 2]);
+  }
 
   delete_rbtree(t);
 }
@@ -358,6 +358,7 @@ void test_find_erase_fixed() {
 }
 
 void test_find_erase_rand(const size_t n, const unsigned int seed) {
+  printf("gg!!!");
   srand(seed);
   rbtree *t = new_rbtree();
   key_t *arr = calloc(n, sizeof(key_t));
@@ -372,16 +373,16 @@ void test_find_erase_rand(const size_t n, const unsigned int seed) {
 }
 
 int main(void) {
-  test_init();
-  test_insert_single(1024);
-  test_find_single(512, 1024);
+  // test_init();
+  // test_insert_single(1024);
+  // test_find_single(512, 1024);
   // test_erase_root(128);
   // test_find_erase_fixed();
-  test_minmax_suite();
-  test_to_array_suite();
+  // test_minmax_suite();
+  // test_to_array_suite();
   // test_distinct_values();
   // test_duplicate_values();
   // test_multi_instance();
-  // test_find_erase_rand(10000, 17);
+  test_find_erase_rand(10000, 17);
   printf("Passed all tests!\n");
 }
