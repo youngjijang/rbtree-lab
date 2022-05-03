@@ -34,7 +34,8 @@ void test_insert_single(const key_t key) {
   assert(p->right == NULL);
   assert(p->parent == NULL);
 #endif
-  // delete_rbtree(t);
+  // in_order(t,t->root);
+  delete_rbtree(t);
 }
 
 // find should return the node with the key or NULL if no such node exists
@@ -131,6 +132,7 @@ void test_to_array(rbtree *t, const key_t *arr, const size_t n) {
   assert(t != NULL);
 
   insert_arr(t, arr, n);
+
   qsort((void *)arr, n, sizeof(key_t), comp);
 
   key_t *res = calloc(n, sizeof(key_t));
@@ -307,6 +309,8 @@ void test_to_array_suite() {
   const size_t n = sizeof(entries) / sizeof(entries[0]);
   test_to_array(t, entries, n);
 
+  // in_order(t,t->root);
+
   delete_rbtree(t);
 }
 
@@ -373,7 +377,7 @@ int main(void) {
   test_find_single(512, 1024);
   // test_erase_root(128);
   // test_find_erase_fixed();
-  // test_minmax_suite();
+  test_minmax_suite();
   // test_to_array_suite();
   // test_distinct_values();
   // test_duplicate_values();
