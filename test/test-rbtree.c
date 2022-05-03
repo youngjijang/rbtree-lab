@@ -113,17 +113,17 @@ void test_minmax(key_t *arr, const size_t n) {
   assert(q != NULL);
   assert(q->key == arr[n - 1]);
 
-  rbtree_erase(t, p);
-  p = rbtree_min(t);
-  assert(p != NULL);
-  assert(p->key == arr[1]);
+  // rbtree_erase(t, p);
+  // p = rbtree_min(t);
+  // assert(p != NULL);
+  // assert(p->key == arr[1]);
 
-  if (n >= 2) {
-    rbtree_erase(t, q);
-    q = rbtree_max(t);
-    assert(q != NULL);
-    assert(q->key == arr[n - 2]);
-  }
+  // if (n >= 2) {
+  //   rbtree_erase(t, q);
+  //   q = rbtree_max(t);
+  //   assert(q != NULL);
+  //   assert(q->key == arr[n - 2]);
+  // }
 
   delete_rbtree(t);
 }
@@ -296,7 +296,7 @@ void test_duplicate_values() {
 }
 
 void test_minmax_suite() {
-  key_t entries[] = {10, 5, 8, 34, 67, 23, 156, 24, 2, 12};
+  key_t entries[] = {10, 5, 8, 34, 67, 23, 156, 24, 2, 12};//10개
   const size_t n = sizeof(entries) / sizeof(entries[0]);
   test_minmax(entries, n);
 }
@@ -378,7 +378,7 @@ int main(void) {
   // test_erase_root(128);
   // test_find_erase_fixed();
   test_minmax_suite();
-  // test_to_array_suite();
+  test_to_array_suite();
   // test_distinct_values();
   // test_duplicate_values();
   // test_multi_instance();

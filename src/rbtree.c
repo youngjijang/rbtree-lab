@@ -17,16 +17,17 @@ rbtree *new_rbtree(void) {
  * 후위 순회 노드 삭제
  */
 void post_order(rbtree *t, node_t *node){
-  if (node != t->nil) {
-    post_order(t,node->left);
-    post_order(t,node->right);
-    free(node);
-  }
+  if (node == t->nil) return;
+  post_order(t,node->left);
+  post_order(t,node->right);
+  free(node);
 }
 
 void delete_rbtree(rbtree *t) {
   // TODO: reclaim the tree nodes's memory
-  post_order(t,t->root);
+  if(t->root != t->nil){
+     post_order(t,t->root);
+  }
   free(t->nil);
   free(t);
 }
@@ -35,23 +36,24 @@ void delete_rbtree(rbtree *t) {
  * 왼쪽 회전..
  */
 void left_rotate(rbtree *t, node_t *p){
-  if(p == NULL) return;
+  if(p->right != t->nil){
 
-  node_t *y = p->right;
-  p->right = y->left;
-  if(y->left != t->nil)
-    y->left->parent = p;
+    node_t *y = p->right;
+    p->right = y->left;
+    if(y->left != t->nil)
+      y->left->parent = p;
 
-  y->parent = p->parent;
+    y->parent = p->parent;
 
-  if(p->parent == t->nil)
-    t->root = y;
-  else if (p == p->parent->left)
-    p->parent->left = y;
-  else p->parent->right = y;
+    if(p->parent == t->nil)
+      t->root = y;
+    else if (p == p->parent->left)
+      p->parent->left = y;
+    else p->parent->right = y;
 
-  y->left = p;
-  p->parent = y;
+    y->left = p;
+    p->parent = y;
+  }
 
 }
 
@@ -59,31 +61,32 @@ void left_rotate(rbtree *t, node_t *p){
  * 오른쪽 회전
  */
 void right_rotate(rbtree *t, node_t *p){
-  if(p == NULL) return;
+  if(p->left != t->nil){
 
-  node_t *y = p->left;
-  p->left = y->right;
-  if(y->right != t->nil)
-    y->right->parent = p;
+    node_t *y = p->left;
+    p->left = y->right;
+    if(y->right != t->nil)
+      y->right->parent = p;
 
-  y->parent = p->parent;
+    y->parent = p->parent;
 
-  if(p->parent == t->nil)
-    t->root = y;
-  else if (p == p->parent->left)
-    p->parent->right = y;
-  else p->parent->left = y;
+    if(p->parent == t->nil)
+      t->root = y;
+    else if (p == p->parent->right)
+      p->parent->right = y;
+    else p->parent->left = y;
 
-  y->right = p;
-  p->parent = y;
+    y->right = p;
+    p->parent = y;
+  }
 
 }
 
 /**
  * 삽입후 위반 사항 처리
  */
-void inset_fixed(rbtree *t, node_t *p){
-  node_t* y = t->nil;
+void insert_fixed(rbtree *t, node_t *p){
+  node_t* y;
 
   while(p->parent->color == RBTREE_RED){
     if(p->parent == p->parent->parent->left){ // 왼쪽일떄
@@ -120,8 +123,6 @@ void inset_fixed(rbtree *t, node_t *p){
       }
     }
   }
-
-  t->root->color = RBTREE_BLACK;
 }
 
 node_t *rbtree_insert(rbtree *t, const key_t key) {
@@ -130,6 +131,7 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   p->key = key;
   p->left = t->nil;
   p->right = t->nil;
+  p->color = RBTREE_RED;
 
   node_t *y = t->nil;
   node_t *x = t->root;
@@ -141,16 +143,18 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
     else x = x->right;
   }
   p->parent = y; //
-
+  
   if(y == t->nil)
     t->root = p; // 하나도 없을 경우
-  else if(p->key < y->key)
+  else if(key < y->key)
     y->left = p;
-  else y->right = p;
+  else 
+    y->right = p;
 
-  inset_fixed(t,p);
+  insert_fixed(t,p);
+  t->root->color = RBTREE_BLACK;
 
-  return t->root;
+  return p;
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
@@ -167,22 +171,23 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
   return NULL;
 }
 
-
 node_t *rbtree_min(const rbtree *t) {
   // TODO: implement find
   node_t *tmp = t->root;
-  while(tmp != t->nil){
+  while(tmp->left != t->nil){
     tmp = tmp->left;
   }
+  printf("%d\n",tmp->key);
   return tmp;
 }
 
 node_t *rbtree_max(const rbtree *t) {
   // TODO: implement find
   node_t *tmp = t->root;
-  while(tmp != t->nil){
+  while(tmp->right != t->nil){
     tmp = tmp->right;
   }
+  printf("%d\n",tmp->key);
   return tmp;
 }
 
@@ -222,14 +227,14 @@ void inorder(rbtree *t, node_t *x)
   }
 }
 
-int main()
-{
-  rbtree *t = new_rbtree();
-  key_t entries[] = {2, 3, 4, 5,1,3,6 ,8};
-  const size_t n = sizeof(entries) / sizeof(entries[0]);
-  for (size_t i = 0; i < n; i++)
-  {
-    rbtree_insert(t, entries[i]);
-  }
-  inorder(t, t->root);
-}
+// int main()
+// {
+//   rbtree *t = new_rbtree();
+//   key_t entries[] = {1,6,3,2,9,4};
+//   const size_t n = sizeof(entries) / sizeof(entries[0]);
+//   for (size_t i = 0; i < n; i++)
+//   {
+//     rbtree_insert(t, entries[i]);
+//   }
+//   inorder(t, t->root);
+// }
