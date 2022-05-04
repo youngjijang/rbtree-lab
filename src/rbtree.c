@@ -26,7 +26,7 @@ void post_order(rbtree *t, node_t *node){
 void delete_rbtree(rbtree *t) {
   // TODO: reclaim the tree nodes's memory
   if(t->root != t->nil){
-     post_order(t,t->root);
+    post_order(t,t->root);
   }
   free(t->nil);
   free(t);
@@ -36,7 +36,7 @@ void delete_rbtree(rbtree *t) {
  * 왼쪽 회전..
  */
 void left_rotate(rbtree *t, node_t *p){
-  if(p->right != t->nil){
+  if(p->right != t->nil){ //nil사용시 안해줘도됨
 
     node_t *y = p->right;
     p->right = y->left;
@@ -91,17 +91,17 @@ void insert_fixed(rbtree *t, node_t *p){
   while(p->parent->color == RBTREE_RED){
     if(p->parent == p->parent->parent->left){ // 왼쪽일떄
       y = p->parent->parent->right;
-      if(y->color == RBTREE_RED){
+      if(y->color == RBTREE_RED){//case 1
         p->parent->color = RBTREE_BLACK;
         y->color = RBTREE_BLACK;
         p->parent->parent->color = RBTREE_RED;
         p = p->parent->parent;
       }else{
-        if(p == p->parent->right){
+        if(p == p->parent->right){ //case 2
           p = p->parent;
           left_rotate(t,p);
         }
-        p->parent->color= RBTREE_BLACK;
+        p->parent->color= RBTREE_BLACK; //case 3
         p->parent->parent->color =RBTREE_RED;
         right_rotate(t,p->parent->parent);
       }
@@ -171,13 +171,17 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
   return NULL;
 }
 
+// 입력받은 노드기준 최소값 찾기
+node_t *min(const rbtree *t,node_t* node){
+  while(node->left != t->nil){
+    node = node->left;
+  }
+  return node;
+}
+
 node_t *rbtree_min(const rbtree *t) {
   // TODO: implement find
-  node_t *tmp = t->root;
-  while(tmp->left != t->nil){
-    tmp = tmp->left;
-  }
-  printf("%d\n",tmp->key);
+  node_t *tmp = min(t,t->root);
   return tmp;
 }
 
@@ -187,12 +191,116 @@ node_t *rbtree_max(const rbtree *t) {
   while(tmp->right != t->nil){
     tmp = tmp->right;
   }
-  printf("%d\n",tmp->key);
+  // printf("%d\n",tmp->key);
   return tmp;
 }
 
+//이식
+void tranceplant(rbtree *t, node_t *u,node_t *v){
+  if (u->parent == t->nil)
+    t->root = v;
+  else if(u == u->parent->left)
+    u->parent->left = v;
+  else u->parent->right = v;
+  v->parent = u->parent;
+}
+
+void erase_fixed(rbtree *t, node_t *x){
+  node_t *w;
+  while (x != t->root && x->color == RBTREE_BLACK)
+  {
+    if(x == x->parent->left){
+      w = x->parent->right;
+      if(w->color == RBTREE_RED){
+        w->color = RBTREE_BLACK;
+        x->parent->color = RBTREE_RED;
+        left_rotate(t,x->parent);
+        w = x->parent->right;
+      }
+      if(w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK){
+        w->color = RBTREE_RED;
+        x = x->parent;
+      }
+      else{
+        if(w->right->color == RBTREE_BLACK){
+          w->left->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          right_rotate(t,w);
+          w = x->parent->right;
+        }
+        w->color = x->parent->color;
+        x->parent->color = RBTREE_BLACK;
+        w->right->color = RBTREE_BLACK;
+        left_rotate(t,x->parent);
+        x = t->root;
+      }
+    }else{
+      w = x->parent->left;
+      if(w->color == RBTREE_RED){
+        w->color = RBTREE_BLACK;
+        x->parent->color = RBTREE_RED;
+        right_rotate(t,x->parent);
+        w = x->parent->left;
+      }
+      if(w->right->color == RBTREE_BLACK && w->left->color == RBTREE_BLACK){
+        w->color = RBTREE_RED;
+        x = x->parent;
+      }
+      else{
+        if(w->left->color == RBTREE_BLACK){
+          w->right->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          left_rotate(t,w);
+          w = x->parent->left;
+        }
+        w->color = x->parent->color;
+        x->parent->color = RBTREE_BLACK;
+        w->left->color = RBTREE_BLACK;
+        right_rotate(t,x->parent);
+        x = t->root;
+      }
+    }
+  }
+  x->color = RBTREE_BLACK;
+}
+
+
 int rbtree_erase(rbtree *t, node_t *p) {
+  if(p == t->nil) return 0;
   // TODO: implement erase
+  node_t *x;
+  node_t *y;
+  color_t origin = p->color;
+  //자식이 하나 혹은 없을 경우
+  if(p->left == t->nil){
+    x = p->right;
+    tranceplant(t,p,p->right);
+  }
+  else if (p->right == t->nil){
+    x = p->left;
+    tranceplant(t,p,p->left);
+  }
+  //자식이 둘인 경우 
+  else{
+    y = min(t,p->right); //sucessor
+    origin = y->color;
+    x = y->right;// 자식이 없으면 nil
+    if(y->parent == p) // 바로 연결되어있을때?
+      x->parent = y; 
+    else {
+      tranceplant(t,y,y->right);
+      y->right = p->right;
+      y->right->parent = y;
+    }
+    tranceplant(t,p,y);
+    y->left = p->left;
+    y->left->parent = y;
+    y->color = p->color;
+  }
+  if(origin == RBTREE_BLACK)
+    erase_fixed(t,x);
+
+  free(p);
   return 0;
 }
 
@@ -216,21 +324,21 @@ int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
 }
 
 
-void inorder(rbtree *t, node_t *x)
-{
-  // printf(“색깔 : %d, 키 : %d / “, x->color, x->key);
-  if (x != t->nil)
-  {
-    inorder(t, x->left);
-    printf("색깔 : %d, 키 : %d\n", x->color, x->key);
-    inorder(t, x->right);
-  }
-}
+// void inorder(rbtree *t, node_t *x)
+// {
+//   // printf(“색깔 : %d, 키 : %d / “, x->color, x->key);
+//   if (x != t->nil)
+//   {
+//     inorder(t, x->left);
+//     printf("색깔 : %d, 키 : %d\n", x->color, x->key);
+//     inorder(t, x->right);
+//   }
+// }
 
 // int main()
 // {
 //   rbtree *t = new_rbtree();
-//   key_t entries[] = {1,6,3,2,9,4};
+//   key_t entries[] = {10, 9, 8, 13, 12, 11};
 //   const size_t n = sizeof(entries) / sizeof(entries[0]);
 //   for (size_t i = 0; i < n; i++)
 //   {
